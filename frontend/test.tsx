@@ -1,0 +1,1 @@
+let page1 = "thisi is page 1"
