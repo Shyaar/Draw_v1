@@ -100,4 +100,53 @@ contract LotteryManager is ReentrancyGuard, Ownable {
     }
 
 
+// -------------------------------
+    // Owner Functions
+    // -------------------------------
+    function setRandomifier(address _randomifier) external onlyOwner {
+        randomifier = _randomifier;
+    }
+
+    // Owner-facing manual start (keeps previous behavior for owner)
+    function startRound(uint256 durationSeconds) external onlyOwner {
+        _startRound(durationSeconds);
+    }
+
+    // Owner manual close (keeps previous behavior for owner)
+    function closeRound() external onlyOwner {
+        _closeRound();
+    }
+
+    function resetRoundState() external onlyOwner {
+        if (roundActive) revert LotteryErrors.RoundActive();
+
+        delete entries;
+
+        winner = address(0);
+        prizeClaimed = false;
+        prizeAmountRedeemed = 0;
+        prizeSharesRedeemed = 0;
+        totalPrincipal = 0;
+        roundEndTimestamp = 0;
+        awaitingRandomness = false;
+        pendingRequestId = 0;
+
+        // Reset tickets
+        nextTicketId = 1;
+    }
+
+    // Owner can update roundDuration at any time
+    function setRoundDuration(uint256 _seconds) external onlyOwner {
+        if (_seconds == 0) revert LotteryErrors.InvalidDuration();
+        roundDuration = _seconds;
+        emit LotteryEvents.RoundDurationUpdated(_seconds);
+    }
+
+    // Owner can update cooldown between rounds
+    function setCooldownPeriod(uint256 _seconds) external onlyOwner {
+        cooldownPeriod = _seconds;
+        emit LotteryEvents.CooldownUpdated(_seconds);
+    }
+
+
 }
