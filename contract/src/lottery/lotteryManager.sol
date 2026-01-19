@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 /**
@@ -28,7 +30,7 @@ pragma solidity ^0.8.19;
  */
 
 
-contract LotteryManager {
+contract LotteryManager is ReentrancyGuard, Ownable {
 
 
     // Round state
@@ -73,7 +75,29 @@ contract LotteryManager {
     uint256 public nextRoundStartTime; // earliest timestamp when keeper can start next round
 
 
+    // -------------------------------
+    // Modifiers
+    // -------------------------------
+    modifier onlyActive() {
+        if (!roundActive) revert LotteryErrors.RoundNotActive();
+        _;
+    }
 
+    modifier onlyEnded() {
+        if (roundActive || roundEndTimestamp == 0 || awaitingRandomness)
+            revert LotteryErrors.RoundNotEndedOrAwaiting();
+        _;
+    }
+
+    modifier onlyRandomifier() {
+        if (msg.sender != randomifier) revert LotteryErrors.OnlyRandomifier();
+        _;
+    }
+
+
+ constructor() Ownable(msg.sender) {
+        
+    }
 
 
 }
